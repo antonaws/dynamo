@@ -1,0 +1,49 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dynamo-deployment-role
+rules:
+- apiGroups: ["nvidia.com"]
+  resources: ["dynamodeployments"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dynamo-api-store-binding
+subjects:
+- kind: ServiceAccount
+  name: dynamo-cloud-dynamo-api-store
+  namespace: dynamo-cloud
+roleRef:
+  kind: ClusterRole
+  name: dynamo-deployment-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dynamo-deployment-namespace-role
+  namespace: dynamo-cloud
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dynamo-api-store-namespace-binding
+  namespace: dynamo-cloud
+subjects:
+- kind: ServiceAccount
+  name: dynamo-cloud-dynamo-api-store
+  namespace: dynamo-cloud
+roleRef:
+  kind: Role
+  name: dynamo-deployment-namespace-role
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,26 @@
+ingress:
+  enabled: false
+  tls: []
+  annotations: {}
+  hosts: []
+
+api-store:
+  ingress:
+    enabled: false
+    tls: []
+    annotations: {}
+    hosts: []
+
+api-server:
+  ingress:
+    enabled: false
+    tls: []
+    annotations: {}
+    hosts: []
+
+service:
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-internal: "false"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamo-cloud-dynamo-operator-controller-manager
+  namespace: dynamo-cloud
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        env:
+        - name: YATAI_CONFIG
+          value: /etc/yatai/config.yaml
+        - name: DYNAMO_STORE_URL
+          value: http://dynamo-store.dynamo-cloud.svc.cluster.local
+        volumeMounts:
+        - name: yatai-config
+          mountPath: /etc/yatai
+      volumes:
+      - name: yatai-config
+        configMap:
+          name: yatai-config

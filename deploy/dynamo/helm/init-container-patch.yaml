@@ -1,0 +1,8 @@
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:latest
+        command: ['sh', '-c',
+          'until pg_isready -h dynamo-cloud-postgresql -p 5432 -U admin; do echo waiting for database; sleep 2; done;']

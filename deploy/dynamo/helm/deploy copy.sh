@@ -37,6 +37,15 @@ export ISTIO_ENABLED="${ISTIO_ENABLED:=false}"
 export ISTIO_GATEWAY="${ISTIO_GATEWAY:=istio-system/istio-ingressgateway}"
 export INGRESS_CLASS="${INGRESS_CLASS:=nginx}"
 
+
+# LoadBalancer configurations
+export LOADBALANCER_ENABLED="${LOADBALANCER_ENABLED:=true}"  # Enable LoadBalancer by default
+export LOADBALANCER_TYPE="${LOADBALANCER_TYPE:=nlb}"  # Use NLB by default
+export LOADBALANCER_INTERNAL="${LOADBALANCER_INTERNAL:=false}"  # External by default
+export LOADBALANCER_CROSS_ZONE="${LOADBALANCER_CROSS_ZONE:=true}"  # Enable cross-zone load balancing
+export SERVICE_PORT="${SERVICE_PORT:=80}"  # Default service port
+export TARGET_PORT="${TARGET_PORT:=8000}"  # Default target port
+
 # Add command line options
 INTERACTIVE=false
 
@@ -141,6 +150,17 @@ echo "INGRESS_CLASS: $INGRESS_CLASS"
 echo "ISTIO_GATEWAY: $ISTIO_GATEWAY"
 echo "DYNAMO_INGRESS_SUFFIX: $DYNAMO_INGRESS_SUFFIX"
 
+
+# Add these to the echo statements that show the configuration
+echo "LoadBalancer Configuration:"
+echo "LOADBALANCER_ENABLED: $LOADBALANCER_ENABLED"
+echo "LOADBALANCER_TYPE: $LOADBALANCER_TYPE"
+echo "LOADBALANCER_INTERNAL: $LOADBALANCER_INTERNAL"
+echo "LOADBALANCER_CROSS_ZONE: $LOADBALANCER_CROSS_ZONE"
+echo "SERVICE_PORT: $SERVICE_PORT"
+echo "TARGET_PORT: $TARGET_PORT"
+
+
 envsubst '${NAMESPACE} ${RELEASE_NAME} ${DOCKER_USERNAME} ${DOCKER_PASSWORD} ${DOCKER_SERVER} ${IMAGE_TAG} ${DYNAMO_INGRESS_SUFFIX} ${PIPELINES_DOCKER_SERVER} ${PIPELINES_DOCKER_USERNAME} ${PIPELINES_DOCKER_PASSWORD} ${DOCKER_SECRET_NAME} ${INGRESS_ENABLED} ${ISTIO_ENABLED} ${INGRESS_CLASS} ${ISTIO_GATEWAY}' < dynamo-platform-values.yaml > generated-values.yaml
 echo "generated file contents:"
 cat generated-values.yaml
@@ -154,10 +174,67 @@ cd platform
 retry_command "$HELM_CMD dep build" 5 5
 cd ..
 
+# Remove ingress-host-suffix from generated-values and reduce resource requirements
+cat > resource-patch.yaml << EOF
+dynamo-operator:
+  controllerManager:
+    manager:
+      args:
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=127.0.0.1:8080"
+        - "--restrictedNamespace=dynamo-cloud"
+        - "--leader-elect=false"
+        - "--natsAddr=nats://dynamo-cloud-nats:4222"
+        - "--etcdAddr=dynamo-cloud-etcd:2379"
+  buildkitd:
+    resources:
+      requests:
+        cpu: "1"
+        memory: "4Gi"
+      limits:
+        cpu: "2"
+        memory: "8Gi"
+EOF
+
+cat > ingress-patch.yaml << EOF
+ingress:
+  enabled: false
+  tls: []
+  annotations: {}
+  hosts: []
+
+api-store:
+  ingress:
+    enabled: false
+    tls: []
+    annotations: {}
+    hosts: []
+
+api-server:
+  ingress:
+    enabled: false
+    tls: []
+    annotations: {}
+    hosts: []
+
+service:
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-internal: "false"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+EOF
+
 # Install/upgrade the helm chart
-echo "Installing/upgrading helm chart..."
+# echo "Installing/upgrading helm chart..."
+# $HELM_CMD upgrade --install $RELEASE_NAME platform/ \
+#   -f generated-values.yaml \
+#   -f custom-values.yaml \
+#   --namespace ${NAMESPACE}
+
 $HELM_CMD upgrade --install $RELEASE_NAME platform/ \
   -f generated-values.yaml \
+  -f resource-patch.yaml \
   --create-namespace \
   --namespace ${NAMESPACE}
 

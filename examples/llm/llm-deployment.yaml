@@ -1,0 +1,41 @@
+apiVersion: nvidia.com/v1alpha1
+kind: DynamoDeployment
+metadata:
+  name: llm-agg
+  namespace: dynamo-cloud
+spec:
+  name: llm-agg
+  bento: frontend:6fnxq6bct233jikw
+  config:
+    Common:
+      model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+      block-size: 64
+      max-model-len: 16384
+    Frontend:
+      served_model_name: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+      endpoint: "dynamo.Processor.chat/completions"
+      port: 8000
+    Processor:
+      router: "round-robin"
+      common-configs: ["model", "block-size", "max-model-len"]
+    VllmWorker:
+      enforce-eager: true
+      max-num-batched-tokens: 16384
+      enable-prefix-caching: true
+      router: "random"
+      tensor-parallel-size: 1
+      ServiceArgs:
+        workers: 1
+        resources:
+          gpu: 1
+      nodeSelector:
+        accelerator: nvidia-gpu
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Equal"
+        value: "present"
+        effect: "NoSchedule"
+      - key: "storage"
+        operator: "Equal"
+        value: "restricted"
+        effect: "NoSchedule"

@@ -1,0 +1,40 @@
+dynamo-operator:
+  controllerManager:
+    manager:
+      args:
+        # Correct format for args - remove host-suffix and add proper flags
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=127.0.0.1:8080"
+        - "--restrictedNamespace=dynamo-cloud"
+        - "--leader-elect=false"
+        - "--natsAddr=nats://dynamo-cloud-nats:4222"
+        - "--etcdAddr=dynamo-cloud-etcd:2379"
+        # --ingress-host-suffix removed
+
+  buildkitd:
+    resources:
+      requests:
+        cpu: "1"
+        memory: "4Gi"
+      limits:
+        cpu: "2"
+        memory: "8Gi"
+    # Add tolerations to allow scheduling on GPU node if needed
+    tolerations:
+    - key: "storage"
+      operator: "Equal" 
+      value: "restricted"
+      effect: "NoSchedule"
+
+# Reduce resource requests for other components
+etcd:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+nats:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"

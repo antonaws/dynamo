@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dynamo-ingress
+  namespace: dynamo-cloud
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - istio-system/dynamo-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: dynamo-store
+        port:
+          number: 80

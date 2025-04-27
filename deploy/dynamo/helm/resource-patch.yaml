@@ -1,0 +1,18 @@
+dynamo-operator:
+  controllerManager:
+    manager:
+      args:
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=127.0.0.1:8080"
+        - "--restrictedNamespace=dynamo-cloud"
+        - "--leader-elect=false"
+        - "--natsAddr=nats://dynamo-cloud-nats:4222"
+        - "--etcdAddr=dynamo-cloud-etcd:2379"
+  buildkitd:
+    resources:
+      requests:
+        cpu: "1"
+        memory: "4Gi"
+      limits:
+        cpu: "2"
+        memory: "8Gi"

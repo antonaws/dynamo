@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-frontend
+  namespace: dynamo-cloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-frontend
+  template:
+    metadata:
+      labels:
+        app: llm-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: 058264135704.dkr.ecr.us-east-1.amazonaws.com/dynamo-vllm:latest
+        command: ["python"]
+        args: ["-m", "dynamo.runtime.server"]
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: SERVED_MODEL_NAME
+          value: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+        - name: ENDPOINT
+          value: "dynamo.Processor.chat/completions"
+        - name: NATS_URL
+          value: "nats://dynamo-cloud-nats:4222"
+        - name: ETCD_URL
+          value: "dynamo-cloud-etcd:2379"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+            ephemeral-storage: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+            ephemeral-storage: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-frontend
+  namespace: dynamo-cloud
+spec:
+  selector:
+    app: llm-frontend
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

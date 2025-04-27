@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dynamo-cloud-dynamo-operator-buildkitd
+  namespace: dynamo-cloud
+spec:
+  template:
+    spec:
+      tolerations:
+      - key: "storage"
+        operator: "Equal"
+        value: "restricted"
+        effect: "NoSchedule"
+      containers:
+      - name: buildkitd
+        resources:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+          limits:
+            cpu: "2"
+            memory: "8Gi"

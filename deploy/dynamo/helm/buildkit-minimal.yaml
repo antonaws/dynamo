@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dynamo-cloud-dynamo-operator-buildkitd
+  namespace: dynamo-cloud
+spec:
+  template:
+    spec:
+      tolerations:
+      - key: "storage"
+        operator: "Equal"
+        value: "restricted"
+        effect: "NoSchedule"
+      - key: "nvidia.com/gpu"
+        operator: "Equal"
+        value: "present"
+        effect: "NoSchedule"
+      containers:
+      - name: buildkitd
+        resources:
+          requests:
+            cpu: "500m"      # Reduced to 0.5 CPU
+            memory: "2Gi"    # Reduced to 2GB
+          limits:
+            cpu: "1"         # Reduced to 1 CPU
+            memory: "4Gi"    # Reduced to 4GB
+        args:
+        - "--oci-worker-no-process-sandbox"
+        - "--addr"
+        - "unix:///run/user/1000/buildkit/buildkitd.sock"
+        - "--addr"
+        - "tcp://0.0.0.0:1234"

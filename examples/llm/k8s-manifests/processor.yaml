@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-processor
+  namespace: dynamo-cloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-processor
+  template:
+    metadata:
+      labels:
+        app: llm-processor
+    spec:
+      containers:
+      - name: processor
+        image: 058264135704.dkr.ecr.us-east-1.amazonaws.com/dynamo-vllm:latest
+        command: ["/bin/sh"]
+        args: ["-c", "python -m dynamo.runtime.processor"]
+        env:
+        - name: ROUTER
+          value: "round-robin"
+        - name: NATS_URL
+          value: "nats://dynamo-cloud-nats:4222"
+        - name: ETCD_URL
+          value: "dynamo-cloud-etcd:2379"
+        envFrom:
+        - configMapRef:
+            name: llm-config
+        resources:
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"

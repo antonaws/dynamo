@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-vllm-worker
+  namespace: dynamo-cloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-vllm-worker
+  template:
+    metadata:
+      labels:
+        app: llm-vllm-worker
+    spec:
+      nodeSelector:
+        nvidia.com/gpu: "present"
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Equal"
+        value: "required"
+        effect: "NoSchedule"
+      - key: "node.kubernetes.io/disk-pressure"
+        operator: "Exists"
+        effect: "NoSchedule"
+      volumes:
+      - name: model-cache
+        emptyDir:
+          sizeLimit: "30Gi"
+      containers:
+      - name: vllm-worker
+        image: 058264135704.dkr.ecr.us-east-1.amazonaws.com/dynamo-vllm:latest
+        command: ["python"]
+        args: ["-m", "dynamo.runtime.worker"]
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        - name: NATS_URL
+          value: "nats://dynamo-cloud-nats:4222"
+        - name: ETCD_URL
+          value: "dynamo-cloud-etcd:2379"
+        volumeMounts:
+        - name: model-cache
+          mountPath: /root/.cache/huggingface
+        resources:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+            ephemeral-storage: "10Gi"
+          limits:
+            cpu: "2"
+            memory: "8Gi"
+            nvidia.com/gpu: "1"
+            ephemeral-storage: "30Gi"

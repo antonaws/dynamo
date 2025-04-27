@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamo-cloud-dynamo-operator-controller-manager
+  namespace: dynamo-cloud
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        env:
+        - name: YATAI_CONFIG
+          value: /etc/yatai/config.yaml
+        volumeMounts:
+        - name: yatai-config
+          mountPath: /etc/yatai
+          readOnly: true
+      volumes:
+      - name: yatai-config
+        secret:
+          secretName: yatai-config

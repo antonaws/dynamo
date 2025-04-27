@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamo-cloud-dynamo-operator-controller-manager
+  namespace: dynamo-cloud
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        args:
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=127.0.0.1:8080"
+        - "--restrictedNamespace=dynamo-cloud"
+        - "--leader-elect=false"
+        - "--natsAddr=nats://dynamo-cloud-nats:4222"
+        - "--etcdAddr=dynamo-cloud-etcd:2379"

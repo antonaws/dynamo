@@ -1,0 +1,28 @@
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:latest
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dynamo-cloud-postgresql
+              key: password
+        - name: PGHOST
+          value: dynamo-cloud-postgresql.dynamo-cloud.svc.cluster.local
+        - name: PGUSER
+          value: admin
+        - name: PGDATABASE
+          value: dynamo
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for PostgreSQL..."
+          until pg_isready -h $PGHOST -U $PGUSER -d $PGDATABASE; do
+            echo "PostgreSQL is unavailable - sleeping"
+            sleep 2
+          done
+          echo "PostgreSQL is ready"

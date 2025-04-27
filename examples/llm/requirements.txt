@@ -1,0 +1,8 @@
+msgspec
+vllm
+transformers
+bentoml
+fastapi
+pydantic
+torch
+numpy
