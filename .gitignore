@@ -90,3 +90,33 @@ TensorRT-LLM
 .build/
 # Copied binaries to ignore
 deploy/dynamo/sdk/src/dynamo/sdk/cli/bin
+
+
+# Build artifacts
+**/target/
+**/build/
+**/dist/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraformrc
+terraform.rc
+
+# Helm
+**/charts/*.tgz
+**/.helm/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Dependencies
+**/node_modules/
+**/vendor/
+
+# Logs
+*.log
