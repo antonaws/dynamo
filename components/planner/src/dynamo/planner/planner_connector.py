@@ -13,22 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[workspace]
-members = [
-    "hello_world",
-    "service_metrics",
-]
-resolver = "3"
-
-[workspace.package]
-version = "0.2.0"
-edition = "2021"
-authors = ["NVIDIA"]
-license = "Apache-2.0"
-homepage = "https://github.com/ai-dynamo/dynamo"
-repository = "https://github.com/ai-dynamo/dynamo.git"
+from abc import ABC, abstractmethod
 
 
-[workspace.dependencies]
-# local or crates.io
-dynamo-runtime = { path = "../" }
+# TODO: add ability to scale component to X replicas
+class PlannerConnector(ABC):
+    @abstractmethod
+    async def add_component(self, component_name):
+        """Add a component to the planner"""
+        pass
+
+    @abstractmethod
+    async def remove_component(self, component_name):
+        """Remove a component from the planner"""
+        pass

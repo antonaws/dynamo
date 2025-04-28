@@ -13,22 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[workspace]
-members = [
-    "hello_world",
-    "service_metrics",
-]
-resolver = "3"
 
-[workspace.package]
-version = "0.2.0"
-edition = "2021"
-authors = ["NVIDIA"]
-license = "Apache-2.0"
-homepage = "https://github.com/ai-dynamo/dynamo"
-repository = "https://github.com/ai-dynamo/dynamo.git"
+import argparse
+import asyncio
+
+import uvloop
+
+from dynamo.runtime import DistributedRuntime, dynamo_worker
 
 
-[workspace.dependencies]
-# local or crates.io
-dynamo-runtime = { path = "../" }
+@dynamo_worker(static=False)
+async def worker(runtime: DistributedRuntime):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("lease_id", type=int, help="Lease ID to revoke")
+    args = parser.parse_args()
+    await init(runtime, args.lease_id)
+
+
+async def init(runtime: DistributedRuntime, lease_id: int):
+    client = runtime.etcd_client()
+    await client.revoke_lease(lease_id)
+
+
+if __name__ == "__main__":
+    uvloop.install()
+    asyncio.run(worker())

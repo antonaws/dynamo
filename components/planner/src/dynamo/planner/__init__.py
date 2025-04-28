@@ -13,22 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[workspace]
-members = [
-    "hello_world",
-    "service_metrics",
-]
-resolver = "3"
+__all__ = ["CircusController", "LocalConnector", "PlannerConnector"]
 
-[workspace.package]
-version = "0.2.0"
-edition = "2021"
-authors = ["NVIDIA"]
-license = "Apache-2.0"
-homepage = "https://github.com/ai-dynamo/dynamo"
-repository = "https://github.com/ai-dynamo/dynamo.git"
-
-
-[workspace.dependencies]
-# local or crates.io
-dynamo-runtime = { path = "../" }
+# Import the classes
+from dynamo.planner.circusd import CircusController
+from dynamo.planner.local_connector import LocalConnector
+from dynamo.planner.planner_connector import PlannerConnector
